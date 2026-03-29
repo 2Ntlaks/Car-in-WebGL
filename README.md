@@ -118,4 +118,8 @@ This project is meant to make WebGL feel less mysterious. Instead of hiding the 
 
 ## License
 
-Feel free to use, modify, and learn from this project.
+This repository is currently shared for educational and portfolio purposes.
+
+A formal open-source license has not yet been added to the project. Until a `LICENSE` file is included, all rights remain with the author.
+
+If you want this repository to be openly reusable, the next step is to add a standard license such as MIT, Apache-2.0, or GPL-3.0.
