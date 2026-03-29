@@ -1,138 +1,120 @@
 # Car in WebGL
 
-A beginner-friendly, step-by-step guide to building a 2D car using **raw WebGL** — no libraries, no frameworks, just vertices on a Cartesian plane.
+A beginner-friendly WebGL project that builds a 2D car from scratch using only HTML, CSS, JavaScript, and raw WebGL.
 
-This project shows how to go from plotting points on a grid to rendering and animating shapes in the browser using WebGL.
+This repository is intentionally simple: no frameworks, no helper libraries, and no build step. The focus is on understanding how coordinates, triangles, buffers, shaders, and transformation matrices come together to draw and animate a scene in the browser.
 
----
+## Overview
 
-## 🗂️ Project Structure
+The project is presented in two versions:
 
-```
+- `v1` introduces the car body and roof using hand-plotted vertices.
+- `v2` expands the scene with wheels, windows, a headlight, and animation.
+
+The workflow behind both versions is the same:
+
+1. Sketch the car on a Cartesian plane.
+2. Convert each shape into triangles.
+3. Send the vertex data to WebGL buffers.
+4. Render the geometry with shaders.
+5. Apply transforms to animate the final model.
+
+## What You Will Learn
+
+- How WebGL coordinates map to a `-1` to `1` clip-space grid
+- How to break rectangles, trapezoids, and hexagons into triangles
+- How to store geometry and color data in buffers
+- How vertex and fragment shaders work together
+- How to animate a scene with transformation matrices
+
+## Project Structure
+
+```text
 Car in WebGL/
-├── README.md
-├── assets/
-│   ├── sketch.jpeg    ← Cartesian plane construction diagram
-│   ├── v1.png         ← Screenshot of v1
-│   ├── v2.png         ← Screenshot of v2
-│   └── v3.mp4         ← Video of the car moving
-├── Car in webgl v1/   ← Body + Roof only
-│   ├── index.html
-│   ├── main.js
-│   └── style.css
-└── car in webgl v2/   ← Wheels, Windows, Headlight + Animation
-    ├── index.html
-    ├── main.js
-    └── style.css
+|-- README.md
+|-- assets/
+|   |-- sketch.jpeg
+|   |-- v1.png
+|   |-- v2.png
+|   `-- v3.mp4
+|-- Car in webgl v1/
+|   |-- index.html
+|   |-- main.js
+|   `-- style.css
+`-- car in webgl v2/
+    |-- index.html
+    |-- main.js
+    `-- style.css
 ```
 
----
+## Build the Car
 
-## Step 1: Sketch It on the Cartesian Plane
+### Step 1: Sketch on the Cartesian Plane
 
-Before writing any code, plot your points on a grid. WebGL uses a coordinate system from **-1 to 1** on both axes. Every shape is just a set of (x, y) coordinates.
+Before writing code, the car is plotted on a grid. In WebGL, the visible area is described in normalized device coordinates, where both `x` and `y` run from `-1` to `1`.
 
 ![Cartesian plane construction diagram](assets/sketch.jpeg)
 
-The car is built from simple shapes:
-- **Body** → Rectangle (points A, B, C, D)
-- **Roof** → Trapezoid (points E, F, G, H)
+The first version starts with two simple shapes:
 
-Each shape is split into **triangles** because that's the only primitive WebGL can draw.
+- Body: a rectangle
+- Roof: a trapezoid
 
----
+Because WebGL renders triangles, each shape is split into triangle pairs.
 
-## Step 2: V1 — Body + Roof
+### Step 2: Version 1
 
-With the coordinates from the sketch, write them directly into a `vertices` array. No helper functions — just raw numbers that map 1:1 to the diagram.
+`v1` draws the main body of the car by writing the coordinates directly into a `vertices` array. The geometry is colorized with a matching `colors` array and rendered with a minimal shader pipeline.
 
-```js
-var vertices = [
-    // Body — Triangle 1: A → B → C
-    -0.75, -0.20, 0.0,   // A (bottom-left)
-     0.75, -0.20, 0.0,   // B (bottom-right)
-     0.75,  0.20, 0.0,   // C (top-right)
-    // Body — Triangle 2: A → C → D
-    -0.75, -0.20, 0.0,   // A
-     0.75,  0.20, 0.0,   // C
-    -0.75,  0.20, 0.0,   // D (top-left)
-    // ...
-];
+![Version 1 screenshot](assets/v1.png)
+
+Source: [`Car in webgl v1/`](Car%20in%20webgl%20v1/)
+
+### Step 3: Version 2
+
+`v2` keeps the same raw-WebGL approach and adds more detail:
+
+- Wheels built from triangle fans shaped like hexagons
+- Two window panels
+- A front headlight
+
+![Version 2 screenshot](assets/v2.png)
+
+Source: [`car in webgl v2/`](car%20in%20webgl%20v2/)
+
+### Step 4: Animation
+
+The second version also introduces transformation matrices. A uniform matrix in the vertex shader scales and translates the entire car, which makes it drive across the screen with a slight bounce.
+
+Demo video: [`assets/v3.mp4`](assets/v3.mp4)
+
+## Key Ideas
+
+- Sketch first, then code
+- Everything becomes triangles
+- Vertex coordinates map directly from the drawing
+- Animation comes from matrix transforms, not redrawing the shape by hand
+
+## Running the Project
+
+You can open either version directly in a browser:
+
+- `Car in webgl v1/index.html`
+- `car in webgl v2/index.html`
+
+There is no install step and no package manager setup.
+
+If your browser blocks local file behavior, run a small local server in the project folder instead. For example:
+
+```bash
+python -m http.server 8000
 ```
 
-**Result:**
+Then open `http://localhost:8000/`.
 
-![V1 — Body and Roof](assets/v1.png)
+## Why This Repo Exists
 
-📂 Full code: [`Car in webgl v1/`](Car%20in%20webgl%20v1/)
-
----
-
-## Step 3: V2 — Wheels, Windows & Headlight
-
-Using the same approach — plot, label, split into triangles — we add more parts:
-
-| Part | Shape | Method |
-|------|-------|--------|
-| **Wheels** | Hexagons | 6 triangles from center to edge points |
-| **Windows** | Quads inside the roof | 2 triangles each |
-| **Headlight** | Small quad at the front | 2 triangles |
-
-**Result:**
-
-![V2 — Full car with details](assets/v2.png)
-
-📂 Full code: [`car in webgl v2/`](car%20in%20webgl%20v2/)
-
----
-
-## Step 4: Make It Move!
-
-Using **transformation matrices** (translation, scaling, rotation), we multiply every vertex by a transform in the vertex shader:
-
-```glsl
-uniform mat4 uTransform;
-
-void main() {
-    gl_Position = uTransform * vec4(aPosition, 1.0);
-}
-```
-
-Each frame, the car translates across the screen with a subtle bounce:
-
-```js
-var driveX = ((angle * 0.5) % 4.0) - 2.0;
-var bounceY = Math.sin(angle * 4.0) * 0.02;
-var transform = multiplyMatrices(
-    translation(driveX, bounceY, 0.0),
-    scaling(0.6, 0.6, 1.0)
-);
-```
-
-**Result:**
-
-https://github.com/user-attachments/assets/v3.mp4
-
-> *If the video doesn't play above, see [`assets/v3.mp4`](assets/v3.mp4)*
-
----
-
-## Key Takeaways
-
-1. **Sketch first, code second** — Plot your points on a Cartesian plane before touching any code
-2. **Everything is triangles** — WebGL only draws triangles, so every rectangle, trapezoid, or hexagon is split into triangles
-3. **Coordinates map directly** — The numbers in your `vertices` array are the exact (x, y) values from your sketch
-4. **Transformations = matrices** — Moving, scaling, and rotating shapes is done by multiplying vertices by a 4×4 matrix
-
----
-
-## How to Run
-
-1. Clone this repo
-2. Open `Car in webgl v1/index.html` or `car in webgl v2/index.html` in your browser
-3. No build step, no npm — just open and go!
-
----
+This project is meant to make WebGL feel less mysterious. Instead of hiding the graphics pipeline behind a framework, it keeps the math and rendering steps visible so you can see how a scene is constructed from first principles.
 
 ## License
 
